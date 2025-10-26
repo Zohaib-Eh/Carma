@@ -3,12 +3,12 @@ import { updateBookingStatus, getBookingById } from '../db';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const body = await request.json();
     const { status, rentedAt } = body;
-    const bookingId = params.id;
+    const { id: bookingId } = await params;
 
     if (!bookingId || !status) {
       return NextResponse.json(
@@ -41,10 +41,10 @@ export async function PATCH(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const bookingId = params.id;
+    const { id: bookingId } = await params;
     const booking = getBookingById(bookingId);
 
     if (!booking) {
