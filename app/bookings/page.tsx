@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Calendar, MapPin, Sparkles, QrCode, Car } from "lucide-react"
+import { Calendar, MapPin, Sparkles, QrCode, Car, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import QRCode from "react-qr-code"
@@ -130,7 +130,12 @@ export default function BookingsPage() {
                     className="object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
-                  <div className="absolute top-4 right-4 bg-gradient-to-r from-primary to-accent backdrop-blur-sm text-primary-foreground px-4 py-2 rounded-full text-sm font-semibold shadow-lg capitalize">
+                  <div className={`absolute top-4 right-4 backdrop-blur-sm text-primary-foreground px-4 py-2 rounded-full text-sm font-semibold shadow-lg capitalize flex items-center gap-2 ${
+                    booking.status === 'rented' 
+                      ? 'bg-gradient-to-r from-green-500 to-green-600' 
+                      : 'bg-gradient-to-r from-primary to-accent'
+                  }`}>
+                    {booking.status === 'rented' && <CheckCircle2 className="w-4 h-4" />}
                     {booking.status}
                   </div>
                 </div>
@@ -188,18 +193,26 @@ export default function BookingsPage() {
                       exit={{ opacity: 0, height: 0 }}
                       className="pt-4 border-t border-border/50"
                     >
-                      <div className="bg-white p-6 rounded-xl flex flex-col items-center gap-4">
-                        <QRCode
-                          value={JSON.stringify({
-                            bookingId: booking.id,
-                            carName: booking.carName,
-                            pickupDate: booking.pickupDate,
-                            location: booking.location,
-                          })}
-                          size={200}
-                        />
-                        <p className="text-sm text-gray-900 text-center font-medium">Scan this QR code at pickup location</p>
-                      </div>
+                      {booking.status === 'rented' ? (
+                        <div className="bg-gradient-to-r from-green-500/10 to-green-600/10 border border-green-500/30 p-6 rounded-xl flex flex-col items-center gap-4">
+                          <CheckCircle2 className="w-16 h-16 text-green-500" />
+                          <div className="text-center">
+                            <p className="text-lg font-bold text-green-600 mb-1">Vehicle Rented</p>
+                            <p className="text-sm text-muted-foreground">This booking has been confirmed and the vehicle is in use</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-white p-6 rounded-xl flex flex-col items-center gap-4">
+                          <QRCode
+                            value={`${typeof window !== 'undefined' ? window.location.origin : ''}/confirm-rental?bookingId=${booking.id}`}
+                            size={200}
+                          />
+                          <div className="text-center">
+                            <p className="text-sm text-gray-900 font-medium mb-1">Scan to confirm rental pickup</p>
+                            <p className="text-xs text-gray-600">This QR code will mark the vehicle as rented</p>
+                          </div>
+                        </div>
+                      )}
                     </motion.div>
                   )}
                 </div>

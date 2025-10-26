@@ -191,11 +191,14 @@ export default function BookingPage() {
               <div className="bg-muted/30 p-6 rounded-xl mb-6 border border-border/50">
                 <div className="flex justify-center mb-4">
                   <div className="bg-white p-6 rounded-xl shadow-lg">
-                    <QRCode value={`CARMA-${bookingId}-${car.id}`} size={200} />
+                    <QRCode 
+                      value={`${typeof window !== 'undefined' ? window.location.origin : ''}/confirm-rental?bookingId=${bookingId}`} 
+                      size={200} 
+                    />
                   </div>
                 </div>
                 <p className="text-sm text-foreground font-semibold mb-1">Booking ID: {bookingId}</p>
-                <p className="text-xs text-muted-foreground">Show this QR code at the pickup location</p>
+                <p className="text-xs text-muted-foreground">Scan this QR code at the pickup location to confirm rental</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-left">
