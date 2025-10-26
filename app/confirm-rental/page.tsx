@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { CheckCircle2, XCircle, Loader2, Car, Sparkles } from "lucide-react"
 import Link from "next/link"
 
-export default function ConfirmRentalPage() {
+function ConfirmRentalContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
@@ -165,5 +165,17 @@ export default function ConfirmRentalPage() {
         </motion.div>
       </div>
     </div>
+  )
+}
+
+export default function ConfirmRentalPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    }>
+      <ConfirmRentalContent />
+    </Suspense>
   )
 }

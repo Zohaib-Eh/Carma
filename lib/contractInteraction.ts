@@ -12,13 +12,15 @@ import {
   TransactionHash,
 } from '@concordium/web-sdk';
 import { WalletConnection } from '@concordium/wallet-connectors';
+import { showToast } from './toast';
 
-const CONTRACT_INDEX = 12282;
+const CONTRACT_INDEX = 12287;
 
 interface Props {
   connector: WalletConnection | null;
   account: string | undefined;
   grpcClient: ConcordiumGRPCClient;
+  carPrice: number; // Price in dollars
   onSuccess: (txHash: string) => void;
   onError: (error: string) => void;
   setIsProcessing: (value: boolean) => void;
@@ -31,7 +33,8 @@ interface GetCodeProps {
 
 export async function verifyAddressOnChain({ 
   connector, 
-  account, 
+  account,
+  carPrice, 
   onSuccess, 
   onError,
   setIsProcessing 
@@ -49,12 +52,15 @@ export async function verifyAddressOnChain({
       BigInt(0)
     );
     
-    // Call verify_address - no parameters needed as it uses ctx.invoker()
+    // Convert car price to microCCD (price * 10^6)
+    const amountInMicroCcd = BigInt(carPrice * 1_000_000);
+    
+    // Call verify_address - now payable with car price
     const txHash = await connector.signAndSendTransaction(
       account,
       AccountTransactionType.Update,
       {
-        amount: CcdAmount.zero(),
+        amount: CcdAmount.fromMicroCcd(amountInMicroCcd),
         address: contractAddress,
         receiveName: ReceiveName.fromString('concordiun.verify_address'),
         maxContractExecutionEnergy: Energy.create(30000),
@@ -62,9 +68,28 @@ export async function verifyAddressOnChain({
     );
     
     console.log('Transaction hash:', txHash);
+    console.log('Amount paid:', carPrice, 'CCD');
+    
+    // Show success toast with transaction hash
+    showToast({
+      type: 'success',
+      title: 'Transaction Submitted!',
+      message: txHash,
+      duration: 6000,
+    });
+    
     onSuccess(txHash);
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Transaction failed';
+    
+    // Show error toast
+    showToast({
+      type: 'error',
+      title: 'Transaction Failed',
+      message: errorMessage,
+      duration: 6000,
+    });
+    
     onError(errorMessage);
     console.error('Transaction failed:', err);
   } finally {

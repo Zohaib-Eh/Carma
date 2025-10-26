@@ -71,11 +71,6 @@ export function HeroSection() {
           </Link>
 
           <div className="flex items-center gap-4">
-            <Link href="/bookings">
-              <Button variant="ghost" className="text-foreground hover:text-primary hover:bg-primary/10 transition-all">
-                My Bookings
-              </Button>
-            </Link>
             <Button
               onClick={() => setShowLoginModal(true)}
               className="bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-primary/50 hover:scale-105"
@@ -103,7 +98,7 @@ export function HeroSection() {
           >
             <span className="text-sm text-primary font-semibold flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
-              Powered by Carma Blockchain
+              Powered by Concordium Blockchain
             </span>
           </motion.div>
 

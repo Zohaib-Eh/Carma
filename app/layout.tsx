@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { AuthProvider } from "@/lib/auth-context"
 import { ConcordiumProvider } from "@/components/ConcordiumProvider"
+import { ToastContainer } from "@/lib/toast"
 import "@/lib/bigint-polyfill"
 import "./globals.css"
 
@@ -26,6 +27,7 @@ export default function RootLayout({
         <ConcordiumProvider>
           <AuthProvider>{children}</AuthProvider>
         </ConcordiumProvider>
+        <ToastContainer />
         <Analytics />
       </body>
     </html>

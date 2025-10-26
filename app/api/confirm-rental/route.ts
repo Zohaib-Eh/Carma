@@ -12,8 +12,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate booking ID format (should be [accountHash]0[code])
+    // Example: 3XSL1GVR01 or 4A2BC3DE0123
+    if (typeof bookingId !== 'string' || bookingId.length < 3) {
+      return NextResponse.json(
+        { error: 'Invalid booking ID format' },
+        { status: 400 }
+      );
+    }
+
     // Log the confirmation (in production, this would update a database)
     console.log('Rental confirmed for booking:', bookingId);
+    console.log('Timestamp:', new Date().toISOString());
 
     // Return success response
     return NextResponse.json({

@@ -80,7 +80,7 @@ export function CarCard({ car }: CarCardProps) {
         <div className="flex items-center justify-between pt-4 border-t border-border/50">
           <div>
             <p className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              ${car.pricePerDay}
+              €{car.pricePerDay}
             </p>
             <p className="text-sm text-muted-foreground">per day</p>
           </div>

@@ -171,7 +171,7 @@ export default function BookingsPage() {
                     <div>
                       <p className="text-sm text-muted-foreground">Total Price</p>
                       <p className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                        ${booking.totalPrice}
+                        €{booking.totalPrice}
                       </p>
                     </div>
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>

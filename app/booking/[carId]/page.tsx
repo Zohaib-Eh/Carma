@@ -96,11 +96,12 @@ export default function BookingPage() {
 
     setIsBooking(true)
     
-    // Call verify_address on the smart contract
+    // Call verify_address on the smart contract with car price payment
     await verifyAddressOnChain({
       connector: connection,
       account,
       grpcClient,
+      carPrice: totalPrice, // Send total price as payment
       onSuccess: async (txHash) => {
         console.log('Transaction submitted, waiting for finalization...');
         
@@ -108,7 +109,7 @@ export default function BookingPage() {
         const isFinalized = await waitForTransactionFinalization(grpcClient, txHash);
         
         if (!isFinalized) {
-          alert('Transaction timeout. Please check your wallet and try again.');
+          alert('❌ Transaction Timeout\n\nThe transaction took too long to finalize. Please check your wallet and try again.');
           setIsBooking(false);
           return;
         }
@@ -121,8 +122,13 @@ export default function BookingPage() {
           grpcClient,
         });
         
-        // Format booking ID as BK0[code]
-        const newBookingId = code !== null ? `BK0${code}` : `BK${Math.random().toString(36).substring(2, 6).toUpperCase()}`
+        // Create unique booking ID: [first 8 chars of account]0[code]
+        // This ensures each booking is unique per user
+        const accountHash = account.substring(0, 8).toUpperCase();
+        const newBookingId = code !== null 
+          ? `${accountHash}0${code}` 
+          : `${accountHash}0${Math.floor(Math.random() * 10000)}`;
+        
         setBookingId(newBookingId)
         
         // Save booking to localStorage
@@ -149,7 +155,7 @@ export default function BookingPage() {
         setIsBooking(false)
       },
       onError: (error) => {
-        alert(`Booking failed: ${error}`)
+        // Error popup is now handled in contractInteraction.ts
         setIsBooking(false)
       },
       setIsProcessing: () => {}, // We'll handle isBooking state ourselves
@@ -239,7 +245,7 @@ export default function BookingPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-foreground font-semibold text-lg">Total Amount</span>
                   <span className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                    ${totalPrice}
+                    €{totalPrice}
                   </span>
                 </div>
               </div>
@@ -376,7 +382,7 @@ export default function BookingPage() {
                   <div className="pt-4 border-t border-border/50 space-y-3">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Daily Rate</span>
-                      <span className="text-foreground font-medium">${car.pricePerDay}</span>
+                      <span className="text-foreground font-medium">€{car.pricePerDay}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Duration</span>
@@ -384,7 +390,7 @@ export default function BookingPage() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Subtotal</span>
-                      <span className="text-foreground font-medium">${totalPrice}</span>
+                      <span className="text-foreground font-medium">€{totalPrice}</span>
                     </div>
                   </div>
 
@@ -392,7 +398,7 @@ export default function BookingPage() {
                     <div className="flex justify-between items-center">
                       <span className="font-semibold text-foreground text-lg">Total</span>
                       <span className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                        ${totalPrice}
+                        €{totalPrice}
                       </span>
                     </div>
                   </div>
