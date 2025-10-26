@@ -1,8 +1,12 @@
-import { NextResponse } from "next/server"
-import { getBookings, addBooking } from "./db"
+import { NextRequest, NextResponse } from "next/server"
+import { getBookings, addBooking, getBookingsByAccount } from "./db"
 
-export async function GET() {
-  return NextResponse.json(getBookings())
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams
+  const account = searchParams.get('account')
+  
+  const bookings = account ? getBookingsByAccount(account) : getBookings()
+  return NextResponse.json(bookings)
 }
 
 export async function POST(req: Request) {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { updateBookingStatus } from '../bookings/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,15 +22,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Log the confirmation (in production, this would update a database)
-    console.log('Rental confirmed for booking:', bookingId);
-    console.log('Timestamp:', new Date().toISOString());
+    // Update the booking status in server storage
+    const confirmedAt = new Date().toISOString();
+    const updatedBooking = updateBookingStatus(bookingId, 'rented', confirmedAt);
+
+    if (!updatedBooking) {
+      return NextResponse.json(
+        { error: 'Booking not found' },
+        { status: 404 }
+      );
+    }
 
     // Return success response
     return NextResponse.json({
       success: true,
       bookingId,
-      confirmedAt: new Date().toISOString(),
+      confirmedAt,
       message: 'Rental confirmed successfully',
     });
   } catch (error) {

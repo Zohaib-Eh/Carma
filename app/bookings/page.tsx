@@ -8,6 +8,7 @@ import { Calendar, MapPin, Sparkles, QrCode, Car, CheckCircle2 } from "lucide-re
 import Link from "next/link"
 import Image from "next/image"
 import QRCode from "react-qr-code"
+import { useWallet } from "@/components/ConcordiumProvider"
 
 interface Booking {
   id: string
@@ -24,14 +25,41 @@ interface Booking {
 export default function BookingsPage() {
   const [selectedBooking, setSelectedBooking] = useState<string | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  
+  const walletProps = useWallet()
+  const connection = walletProps.activeConnector?.getConnections()[0]
+  const account = connection ? walletProps.connectedAccounts.get(connection) : undefined
+
+  const fetchBookings = async () => {
+    if (!account) {
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/bookings?account=${account}`)
+      if (response.ok) {
+        const data = await response.json()
+        setBookings(data)
+      }
+    } catch (error) {
+      console.error('Error fetching bookings:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    // Load bookings from localStorage
-    const savedBookings = localStorage.getItem('carma_bookings')
-    if (savedBookings) {
-      setBookings(JSON.parse(savedBookings))
-    }
-  }, [])
+    fetchBookings()
+
+    // Poll for updates every 3 seconds
+    const interval = setInterval(() => {
+      fetchBookings()
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [account])
 
   return (
     <div className="min-h-screen relative overflow-hidden">

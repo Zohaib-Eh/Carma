@@ -39,16 +39,7 @@ function ConfirmRentalContent() {
       const data = await response.json()
 
       if (response.ok) {
-        // Update booking status in localStorage
-        const bookings = JSON.parse(localStorage.getItem('carma_bookings') || '[]')
-        const updatedBookings = bookings.map((booking: any) => {
-          if (booking.id === bookingId) {
-            return { ...booking, status: 'rented', rentedAt: data.confirmedAt }
-          }
-          return booking
-        })
-        localStorage.setItem('carma_bookings', JSON.stringify(updatedBookings))
-
+        // Booking status updated on server
         setStatus('success')
         setMessage('Rental confirmed! Vehicle is now active.')
       } else {
