@@ -131,7 +131,7 @@ export default function BookingPage() {
         
         setBookingId(newBookingId)
         
-        // Save booking to localStorage
+        // Create booking object
         const booking = {
           id: newBookingId,
           carId: car.id,
@@ -142,14 +142,30 @@ export default function BookingPage() {
           location: 'Downtown Center',
           totalPrice,
           status: 'confirmed',
+          account, // Store account for filtering user's bookings
+          createdAt: new Date().toISOString(),
         }
         
-        // Get existing bookings
-        const existingBookings = JSON.parse(localStorage.getItem('carma_bookings') || '[]')
-        // Add new booking
-        existingBookings.push(booking)
-        // Save back to localStorage
-        localStorage.setItem('carma_bookings', JSON.stringify(existingBookings))
+        try {
+          // Store booking in persistent storage (shared=false for personal data)
+          await window.storage.set(`booking:${newBookingId}`, JSON.stringify(booking), false);
+          
+          // Also maintain a list of booking IDs for the user
+          try {
+            const userBookingsResult = await window.storage.get(`user-bookings:${account}`, false);
+            const userBookings = userBookingsResult ? JSON.parse(userBookingsResult.value) : [];
+            userBookings.push(newBookingId);
+            await window.storage.set(`user-bookings:${account}`, JSON.stringify(userBookings), false);
+          } catch (error) {
+            // If user-bookings key doesn't exist, create it
+            await window.storage.set(`user-bookings:${account}`, JSON.stringify([newBookingId]), false);
+          }
+          
+          console.log('Booking saved successfully!');
+        } catch (error) {
+          console.error('Error saving booking:', error);
+          alert('Booking created but failed to save. Please contact support with ID: ' + newBookingId);
+        }
         
         setIsBooked(true)
         setIsBooking(false)
