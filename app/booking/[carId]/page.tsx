@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
@@ -15,48 +13,12 @@ import { useGrpcClient } from "@concordium/react-components"
 import { verifyAddressOnChain, getCodeFromContract, waitForTransactionFinalization } from "@/lib/contractInteraction"
 
 const cars = [
-  {
-    id: "1",
-    name: "Tesla Model 3",
-    type: "Electric",
-    pricePerDay: 89,
-    image: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop",
-  },
-  {
-    id: "2",
-    name: "BMW 5 Series",
-    type: "Luxury",
-    pricePerDay: 120,
-    image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&auto=format&fit=crop",
-  },
-  {
-    id: "3",
-    name: "Mercedes-Benz GLE",
-    type: "SUV",
-    pricePerDay: 150,
-    image: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&auto=format&fit=crop",
-  },
-  {
-    id: "4",
-    name: "Audi A4",
-    type: "Sedan",
-    pricePerDay: 95,
-    image: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&auto=format&fit=crop",
-  },
-  {
-    id: "5",
-    name: "Porsche Cayenne",
-    type: "SUV",
-    pricePerDay: 180,
-    image: "https://images.unsplash.com/photo-1614200187524-dc4b892acf16?w=800&auto=format&fit=crop",
-  },
-  {
-    id: "6",
-    name: "Toyota Camry",
-    type: "Sedan",
-    pricePerDay: 65,
-    image: "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&auto=format&fit=crop",
-  },
+  { id: "1", name: "Tesla Model 3", type: "Electric", pricePerDay: 89, image: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop" },
+  { id: "2", name: "BMW 5 Series", type: "Luxury", pricePerDay: 120, image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&auto=format&fit=crop" },
+  { id: "3", name: "Mercedes-Benz GLE", type: "SUV", pricePerDay: 150, image: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&auto=format&fit=crop" },
+  { id: "4", name: "Audi A4", type: "Sedan", pricePerDay: 95, image: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&auto=format&fit=crop" },
+  { id: "5", name: "Porsche Cayenne", type: "SUV", pricePerDay: 180, image: "https://images.unsplash.com/photo-1614200187524-dc4b892acf16?w=800&auto=format&fit=crop" },
+  { id: "6", name: "Toyota Camry", type: "Sedan", pricePerDay: 65, image: "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&auto=format&fit=crop" },
 ]
 
 export default function BookingPage() {
@@ -70,10 +32,11 @@ export default function BookingPage() {
 
   const walletProps = useWallet()
   const grpcClient = useGrpcClient(walletProps.network)
+  
   const connection = walletProps.activeConnector?.getConnections()[0]
   const account = connection ? walletProps.connectedAccounts.get(connection) : undefined
-
   const car = cars.find((c) => c.id === params.carId)
+
   useEffect(() => {
     if (!car) router.push("/cars")
   }, [car, router])
@@ -84,10 +47,9 @@ export default function BookingPage() {
 
   const handleBooking = async () => {
     if (!connection || !account || !grpcClient) {
-      alert("Please connect your wallet first at /connect-wallet")
+      alert('Please connect your wallet first at /connect-wallet')
       return
     }
-
     setIsBooking(true)
 
     await verifyAddressOnChain({
@@ -96,20 +58,19 @@ export default function BookingPage() {
       grpcClient,
       carPrice: totalPrice,
       onSuccess: async (txHash) => {
-        console.log("Transaction submitted, waiting for finalization...")
-
         const isFinalized = await waitForTransactionFinalization(grpcClient, txHash)
         if (!isFinalized) {
-          alert("❌ Transaction Timeout\n\nThe transaction took too long to finalize. Please check your wallet and try again.")
+          alert('❌ Transaction Timeout')
           setIsBooking(false)
           return
         }
 
-        console.log("Transaction finalized! Getting code from contract...")
         const code = await getCodeFromContract({ account, grpcClient })
-
         const accountHash = account.substring(0, 8).toUpperCase()
-        const newBookingId = code !== null ? `${accountHash}0${code}` : `${accountHash}0${Math.floor(Math.random() * 10000)}`
+        const newBookingId = code !== null 
+          ? `${accountHash}0${code}` 
+          : `${accountHash}0${Math.floor(Math.random() * 10000)}`
+
         setBookingId(newBookingId)
 
         const booking = {
@@ -117,11 +78,11 @@ export default function BookingPage() {
           carId: car.id,
           carName: car.name,
           carImage: car.image,
-          pickupDate: startDate?.toISOString() || "",
-          returnDate: endDate?.toISOString() || "",
-          location: "Downtown Center",
+          pickupDate: startDate?.toISOString() || '',
+          returnDate: endDate?.toISOString() || '',
+          location: 'Downtown Center',
           totalPrice,
-          status: "confirmed",
+          status: 'confirmed',
           account,
           createdAt: new Date().toISOString(),
         }
@@ -142,13 +103,11 @@ export default function BookingPage() {
         setIsBooked(true)
         setIsBooking(false)
       },
-      onError: (error) => {
-        setIsBooking(false)
-      },
+      onError: () => setIsBooking(false),
       setIsProcessing: () => {},
     })
   }
-
+  
   if (isBooked) {
     return (
       <div className="min-h-screen relative overflow-hidden">

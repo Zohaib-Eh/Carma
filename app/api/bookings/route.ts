@@ -1,31 +1,16 @@
-import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
-
-const filePath = path.join(process.cwd(), "bookings.json");
-
-async function readBookings() {
-  try {
-    const data = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(data);
-  } catch {
-    return [];
-  }
-}
-
-async function saveBookings(bookings: any[]) {
-  await fs.writeFile(filePath, JSON.stringify(bookings, null, 2), "utf-8");
-}
+import { NextResponse } from "next/server"
+import { getBookings, addBooking } from "./db"
 
 export async function GET() {
-  const bookings = await readBookings();
-  return NextResponse.json(bookings);
+  return NextResponse.json(getBookings())
 }
 
 export async function POST(req: Request) {
-  const newBooking = await req.json();
-  const bookings = await readBookings();
-  bookings.push(newBooking);
-  await saveBookings(bookings);
-  return NextResponse.json({ success: true, id: newBooking.id });
+  try {
+    const booking = await req.json()
+    addBooking(booking)
+    return NextResponse.json({ success: true, id: booking.id })
+  } catch (err) {
+    return NextResponse.json({ success: false, error: "Invalid booking data" }, { status: 400 })
+  }
 }
