@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
@@ -107,7 +109,7 @@ export default function BookingPage() {
       setIsProcessing: () => {},
     })
   }
-  
+
   if (isBooked) {
     return (
       <div className="min-h-screen relative overflow-hidden">
