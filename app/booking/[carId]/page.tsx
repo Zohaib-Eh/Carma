@@ -70,19 +70,13 @@ export default function BookingPage() {
 
   const walletProps = useWallet()
   const grpcClient = useGrpcClient(walletProps.network)
-  
-  // Get the connection from wallet props
   const connection = walletProps.activeConnector?.getConnections()[0]
   const account = connection ? walletProps.connectedAccounts.get(connection) : undefined
 
   const car = cars.find((c) => c.id === params.carId)
-
   useEffect(() => {
-    if (!car) {
-      router.push("/cars")
-    }
+    if (!car) router.push("/cars")
   }, [car, router])
-
   if (!car) return null
 
   const days = startDate && endDate ? Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) : 0
@@ -90,91 +84,68 @@ export default function BookingPage() {
 
   const handleBooking = async () => {
     if (!connection || !account || !grpcClient) {
-      alert('Please connect your wallet first at /connect-wallet')
+      alert("Please connect your wallet first at /connect-wallet")
       return
     }
 
     setIsBooking(true)
-    
-    // Call verify_address on the smart contract with car price payment
+
     await verifyAddressOnChain({
       connector: connection,
       account,
       grpcClient,
-      carPrice: totalPrice, // Send total price as payment
+      carPrice: totalPrice,
       onSuccess: async (txHash) => {
-        console.log('Transaction submitted, waiting for finalization...');
-        
-        // Wait for transaction to be finalized
-        const isFinalized = await waitForTransactionFinalization(grpcClient, txHash);
-        
+        console.log("Transaction submitted, waiting for finalization...")
+
+        const isFinalized = await waitForTransactionFinalization(grpcClient, txHash)
         if (!isFinalized) {
-          alert('❌ Transaction Timeout\n\nThe transaction took too long to finalize. Please check your wallet and try again.');
-          setIsBooking(false);
-          return;
+          alert("❌ Transaction Timeout\n\nThe transaction took too long to finalize. Please check your wallet and try again.")
+          setIsBooking(false)
+          return
         }
-        
-        console.log('Transaction finalized! Getting code from contract...');
-        
-        // Get the code from smart contract after finalization
-        const code = await getCodeFromContract({
-          account,
-          grpcClient,
-        });
-        
-        // Create unique booking ID: [first 8 chars of account]0[code]
-        // This ensures each booking is unique per user
-        const accountHash = account.substring(0, 8).toUpperCase();
-        const newBookingId = code !== null 
-          ? `${accountHash}0${code}` 
-          : `${accountHash}0${Math.floor(Math.random() * 10000)}`;
-        
+
+        console.log("Transaction finalized! Getting code from contract...")
+        const code = await getCodeFromContract({ account, grpcClient })
+
+        const accountHash = account.substring(0, 8).toUpperCase()
+        const newBookingId = code !== null ? `${accountHash}0${code}` : `${accountHash}0${Math.floor(Math.random() * 10000)}`
         setBookingId(newBookingId)
-        
-        // Create booking object
+
         const booking = {
           id: newBookingId,
           carId: car.id,
           carName: car.name,
           carImage: car.image,
-          pickupDate: startDate?.toISOString() || '',
-          returnDate: endDate?.toISOString() || '',
-          location: 'Downtown Center',
+          pickupDate: startDate?.toISOString() || "",
+          returnDate: endDate?.toISOString() || "",
+          location: "Downtown Center",
           totalPrice,
-          status: 'confirmed',
-          account, // Store account for filtering user's bookings
+          status: "confirmed",
+          account,
           createdAt: new Date().toISOString(),
         }
-        
+
         try {
-          // Store booking in persistent storage (shared=false for personal data)
-          await window.storage.set(`booking:${newBookingId}`, JSON.stringify(booking), false);
-          
-          // Also maintain a list of booking IDs for the user
-          try {
-            const userBookingsResult = await window.storage.get(`user-bookings:${account}`, false);
-            const userBookings = userBookingsResult ? JSON.parse(userBookingsResult.value) : [];
-            userBookings.push(newBookingId);
-            await window.storage.set(`user-bookings:${account}`, JSON.stringify(userBookings), false);
-          } catch (error) {
-            // If user-bookings key doesn't exist, create it
-            await window.storage.set(`user-bookings:${account}`, JSON.stringify([newBookingId]), false);
-          }
-          
-          console.log('Booking saved successfully!');
+          const res = await fetch("/api/bookings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(booking),
+          })
+          if (!res.ok) throw new Error("Failed to save booking")
+          console.log("Booking saved successfully!")
         } catch (error) {
-          console.error('Error saving booking:', error);
-          alert('Booking created but failed to save. Please contact support with ID: ' + newBookingId);
+          console.error("Error saving booking:", error)
+          alert("Booking created but failed to save. Please contact support with ID: " + newBookingId)
         }
-        
+
         setIsBooked(true)
         setIsBooking(false)
       },
       onError: (error) => {
-        // Error popup is now handled in contractInteraction.ts
         setIsBooking(false)
       },
-      setIsProcessing: () => {}, // We'll handle isBooking state ourselves
+      setIsProcessing: () => {},
     })
   }
 
@@ -266,21 +237,6 @@ export default function BookingPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1">
-                  <Button className="w-full border-2 border-border text-foreground bg-card/50 hover:bg-primary/10 hover:border-primary">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download Receipt
-                  </Button>
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1">
-                  <Button className="w-full border-2 border-border text-foreground bg-card/50 hover:bg-primary/10 hover:border-primary">
-                    <Share2 className="mr-2 h-4 w-4" />
-                    Share Booking
-                  </Button>
-                </motion.div>
-              </div>
-
               <Link href="/bookings">
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Button className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground shadow-lg shadow-primary/30">
@@ -296,6 +252,7 @@ export default function BookingPage() {
     )
   }
 
+  // Main booking form
   return (
     <div className="min-h-screen relative overflow-hidden">
       <div className="absolute inset-0 z-0">
@@ -337,7 +294,6 @@ export default function BookingPage() {
           <p className="text-xl text-muted-foreground mb-8">You're one step away from driving your {car.name}</p>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Booking details */}
             <div className="lg:col-span-2 space-y-6">
               <Card className="p-6 bg-card/80 backdrop-blur-sm border-border/50">
                 <h2 className="text-xl font-semibold text-foreground mb-4">Select Dates</h2>
@@ -430,7 +386,7 @@ export default function BookingPage() {
                       <>
                         <motion.div
                           animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                           className="mr-2"
                         >
                           <Sparkles className="h-5 w-5" />

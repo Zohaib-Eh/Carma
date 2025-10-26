@@ -1,0 +1,15 @@
+[
+  {
+    "id": "4I4DHS1G010",
+    "carId": "1",
+    "carName": "Tesla Model 3",
+    "carImage": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop",
+    "pickupDate": "2025-10-26T09:09:30.436Z",
+    "returnDate": "2025-10-29T09:09:30.436Z",
+    "location": "Downtown Center",
+    "totalPrice": 267,
+    "status": "confirmed",
+    "account": "4i4dhs1G9RfnHeLaEAfL3bQBPdqfPn6Ym5zbtHxh6KrX3SxC8N",
+    "createdAt": "2025-10-26T09:09:39.396Z"
+  }
+]
